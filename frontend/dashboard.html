@@ -1,0 +1,2189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ResolveNow AI — ITSM Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Clash+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Fragment+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #EEF2F7;
+  --bg2:       #F6F8FC;
+  --bg3:       #F8FAFC;
+  --panel:     #FFFFFF;
+  --panel2:    #F1F5F9;
+  --border:    rgba(15,23,42,0.10);
+  --border2:   rgba(15,23,42,0.16);
+  --blue:      #2563EB;
+  --blue-dim:  rgba(37,99,235,0.12);
+  --blue-glow: rgba(37,99,235,0.25);
+  --nav-blue:  #0F4C81;
+  --nav-blue2: #123A63;
+  --green:     #10B981;
+  --green-dim: rgba(16,185,129,0.12);
+  --amber:     #F59E0B;
+  --amber-dim: rgba(245,158,11,0.12);
+  --red:       #EF4444;
+  --red-dim:   rgba(239,68,68,0.12);
+  --purple:    #8B5CF6;
+  --purple-dim:rgba(139,92,246,0.12);
+  --cyan:      #06B6D4;
+  --cyan-dim:  rgba(6,182,212,0.12);
+  --text:      #0F172A;
+  --text2:     #475569;
+  --text3:     #64748B;
+  --font-head: 'Familjen Grotesk', sans-serif;
+  --font-body: 'Space Grotesk', sans-serif;
+  --font-mono: 'Fragment Mono', monospace;
+  --radius:    12px;
+  --sidebar-w: 230px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ── NOISE TEXTURE OVERLAY ── */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:0;
+  opacity:.18;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+/* ── LAYOUT ── */
+.layout{display:grid;grid-template-columns:var(--sidebar-w) 1fr;min-height:100vh;position:relative;z-index:1;}
+
+/* ══════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════ */
+.sidebar{
+  background:linear-gradient(180deg,var(--nav-blue),var(--nav-blue2));
+  border-right:1px solid rgba(255,255,255,0.18);
+  color:#fff;
+  display:flex;
+  flex-direction:column;
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow-y:auto;
+  backdrop-filter:blur(20px);
+}
+
+.logo-area{
+  padding:1.4rem 1.2rem 1rem;
+  border-bottom:1px solid rgba(255,255,255,0.16);
+  position:relative;
+  overflow:hidden;
+}
+
+.logo-area::after{
+  content:'';
+  position:absolute;
+  top:-20px;right:-20px;
+  width:80px;height:80px;
+  background:radial-gradient(circle, rgba(59,130,246,0.15), transparent 70%);
+  border-radius:50%;
+}
+
+.logo{display:flex;align-items:center;gap:10px;}
+
+.logo-icon{
+  width:32px;height:32px;
+  background:rgba(255,255,255,0.18);
+  border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;
+  box-shadow:0 10px 26px rgba(0,0,0,0.18);
+  flex-shrink:0;
+}
+
+.logo-wordmark{font-family:var(--font-head);font-size:15px;font-weight:700;letter-spacing:-.3px;line-height:1.1;}
+.logo-wordmark span{color:#BFDBFE;}
+.logo-sub{font-size:9px;color:rgba(255,255,255,0.58);margin-top:3px;font-family:var(--font-mono);letter-spacing:2px;text-transform:uppercase;}
+
+/* NAV */
+.nav-section{padding:.5rem 0;}
+.nav-label{
+  font-size:9px;color:rgba(255,255,255,0.48);
+  text-transform:uppercase;letter-spacing:2px;
+  padding:.35rem 1.2rem;
+  font-family:var(--font-mono);
+}
+
+.nav-item{
+  display:flex;align-items:center;gap:9px;
+  padding:.5rem 1.2rem;
+  font-size:12.5px;color:rgba(255,255,255,0.78);
+  cursor:pointer;
+  transition:all .15s;
+  border-left:2px solid transparent;
+  font-weight:400;
+  position:relative;
+}
+
+.nav-item:hover{background:rgba(255,255,255,0.10);color:#fff;}
+.nav-item.active{
+  background:rgba(255,255,255,0.14);
+  color:#fff;
+  border-left-color:#BFDBFE;
+  font-weight:500;
+}
+.nav-item .ni{font-size:13px;width:16px;text-align:center;flex-shrink:0;}
+
+.nbadge{
+  margin-left:auto;
+  font-size:10px;padding:1px 7px;
+  border-radius:20px;
+  font-family:var(--font-mono);font-weight:500;
+}
+.nb-blue{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(59,130,246,0.2);}
+.nb-red{background:var(--red-dim);color:var(--red);border:1px solid rgba(239,68,68,0.2);}
+.nb-amber{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.2);}
+.nb-green{background:var(--green-dim);color:var(--green);border:1px solid rgba(16,185,129,0.2);}
+
+/* SIDEBAR FOOTER */
+.sidebar-footer{
+  margin-top:auto;
+  padding:.9rem 1.2rem;
+  border-top:1px solid rgba(255,255,255,0.16);
+}
+
+.api-status{
+  display:flex;align-items:center;gap:7px;
+  font-size:11px;color:rgba(255,255,255,0.78);
+}
+
+.pulse-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 8px var(--green);
+  animation:pulse 2s infinite;
+  flex-shrink:0;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.6;transform:scale(.85);}}
+
+/* ══════════════════════════════════════
+   MAIN
+══════════════════════════════════════ */
+.main{overflow-y:auto;display:flex;flex-direction:column;background:var(--bg);}
+
+/* TOPBAR */
+.topbar{
+  background:linear-gradient(90deg,#1D4ED8,#2563EB);
+  border-bottom:1px solid rgba(255,255,255,0.18);
+  padding:.8rem 1.6rem;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:50;
+  backdrop-filter:blur(20px);
+}
+
+.page-title{font-family:var(--font-head);font-size:16px;font-weight:700;letter-spacing:-.3px;color:#fff;}
+.page-sub{font-size:11px;color:rgba(255,255,255,0.72);margin-top:2px;}
+
+.topbar-right{display:flex;align-items:center;gap:8px;}
+
+/* BUTTONS */
+.btn{
+  padding:.45rem .95rem;border-radius:8px;border:none;
+  font-size:12px;font-family:var(--font-body);font-weight:500;
+  cursor:pointer;display:flex;align-items:center;gap:5px;
+  transition:all .15s;
+}
+.btn-primary{
+  background:var(--blue);color:#fff;
+  box-shadow:0 0 20px rgba(59,130,246,0.3);
+}
+.btn-primary:hover{background:#2563EB;transform:translateY(-1px);box-shadow:0 0 28px rgba(59,130,246,0.45);}
+.btn-ghost{
+  background:var(--panel2);color:var(--text2);
+  border:1px solid var(--border2);
+}
+.btn-ghost:hover{background:var(--bg3);color:var(--text);}
+.topbar .btn-ghost{
+  background:rgba(255,255,255,0.12);
+  color:#fff;
+  border-color:rgba(255,255,255,0.28);
+}
+.topbar .btn-ghost:hover{background:rgba(255,255,255,0.20);color:#fff;}
+.topbar .btn-primary{background:#FFFFFF;color:#1D4ED8;box-shadow:none;}
+.topbar .btn-primary:hover{background:#EFF6FF;color:#1D4ED8;box-shadow:none;}
+
+/* CONTENT */
+.content{padding:1.5rem;flex:1;background:var(--bg);}
+
+/* PAGES */
+.page{display:none;}
+.page.active{display:block;animation:pageIn .25s ease;}
+@keyframes pageIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* ══════════════════════════════════════
+   STAT CARDS
+══════════════════════════════════════ */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem;}
+
+.stat-card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:1.1rem 1.2rem;
+  position:relative;overflow:hidden;
+  transition:border-color .2s, transform .2s;
+  cursor:default;
+  box-shadow:0 10px 24px rgba(15,23,42,0.05);
+}
+
+.stat-card:hover{transform:translateY(-2px);}
+.stat-card::after{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:1px;
+}
+.stat-card.sc-blue{border-top:1px solid rgba(59,130,246,0.4);}
+.stat-card.sc-blue::after{background:linear-gradient(90deg,var(--blue),transparent);}
+.stat-card.sc-green{border-top:1px solid rgba(16,185,129,0.4);}
+.stat-card.sc-green::after{background:linear-gradient(90deg,var(--green),transparent);}
+.stat-card.sc-amber{border-top:1px solid rgba(245,158,11,0.4);}
+.stat-card.sc-amber::after{background:linear-gradient(90deg,var(--amber),transparent);}
+.stat-card.sc-red{border-top:1px solid rgba(239,68,68,0.4);}
+.stat-card.sc-red::after{background:linear-gradient(90deg,var(--red),transparent);}
+
+.stat-card .glow-orb{
+  position:absolute;top:-30px;right:-30px;
+  width:90px;height:90px;border-radius:50%;
+  opacity:.08;
+}
+.sc-blue .glow-orb{background:var(--blue);}
+.sc-green .glow-orb{background:var(--green);}
+.sc-amber .glow-orb{background:var(--amber);}
+.sc-red .glow-orb{background:var(--red);}
+
+.stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;font-family:var(--font-mono);margin-bottom:10px;}
+.stat-val{font-family:var(--font-head);font-size:36px;font-weight:700;letter-spacing:-2px;line-height:1;margin-bottom:6px;}
+.sc-blue .stat-val{color:var(--blue);}
+.sc-green .stat-val{color:var(--green);}
+.sc-amber .stat-val{color:var(--amber);}
+.sc-red .stat-val{color:var(--red);}
+.stat-meta{font-size:11px;color:var(--text3);}
+
+/* ══════════════════════════════════════
+   AI DECISION LOGIC CARDS
+══════════════════════════════════════ */
+.logic-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem;}
+
+.logic-card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:1.1rem 1.2rem;
+  position:relative;overflow:hidden;
+  box-shadow:0 10px 24px rgba(15,23,42,0.05);
+}
+
+.logic-card.lc-red{border-left:3px solid var(--red);}
+.logic-card.lc-green{border-left:3px solid var(--green);}
+
+.logic-header{
+  display:flex;align-items:center;gap:8px;
+  margin-bottom:.75rem;
+}
+
+.logic-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.lc-red .logic-dot{background:var(--red);box-shadow:0 0 8px var(--red);}
+.lc-green .logic-dot{background:var(--green);box-shadow:0 0 8px var(--green);}
+
+.logic-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;font-family:var(--font-mono);}
+.lc-red .logic-title{color:var(--red);}
+.lc-green .logic-title{color:var(--green);}
+
+.logic-row{
+  display:flex;gap:8px;
+  padding:.4rem 0;
+  border-bottom:1px solid var(--border);
+  font-size:11.5px;
+  line-height:1.5;
+}
+.logic-row:last-child{border-bottom:none;}
+.logic-key{color:var(--text2);font-weight:500;flex-shrink:0;min-width:90px;}
+.logic-val{color:var(--text3);}
+
+/* ══════════════════════════════════════
+   TABLE SECTION
+══════════════════════════════════════ */
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+.section-title{font-family:var(--font-head);font-size:14px;font-weight:700;}
+.section-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+.sla-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+.sla-toggle{
+  background:var(--panel2);
+  color:var(--text2);
+  border:1px solid var(--border2);
+  border-radius:8px;
+  padding:.38rem .8rem;
+  font-size:11px;
+  font-family:var(--font-body);
+  font-weight:500;
+  cursor:pointer;
+  display:flex;align-items:center;gap:6px;
+  transition:all .15s;
+}
+.sla-toggle:hover{background:var(--bg3);color:var(--text);}
+.sla-caret{font-size:10px;transition:transform .15s;}
+.sla-toggle.open .sla-caret{transform:rotate(180deg);}
+.sla-list{display:none;flex-direction:column;gap:8px;}
+.sla-list.open{display:flex;}
+
+.table-wrap{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+  margin-bottom:1.5rem;
+  box-shadow:0 10px 24px rgba(15,23,42,0.05);
+}
+
+.table-toolbar{
+  padding:.75rem 1rem;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;
+  background:var(--panel2);
+}
+
+.search-box{
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  border-radius:7px;padding:.4rem .8rem;
+  font-size:12px;color:var(--text);
+  font-family:var(--font-body);outline:none;
+  width:200px;transition:border-color .15s;
+}
+.search-box:focus{border-color:var(--blue);}
+.search-box::placeholder{color:var(--text3);}
+
+.filter-select{
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:7px;padding:.4rem .75rem;
+  font-size:12px;color:var(--text2);
+  font-family:var(--font-body);outline:none;cursor:pointer;
+}
+.filter-select option{background:var(--bg3);}
+
+table{width:100%;border-collapse:collapse;}
+thead th{
+  padding:.65rem 1rem;text-align:left;
+  font-size:10px;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.8px;
+  font-family:var(--font-mono);font-weight:500;
+  border-bottom:1px solid var(--border);
+  background:var(--panel2);
+}
+
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;cursor:pointer;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--panel2);}
+tbody td{padding:.7rem 1rem;font-size:12px;color:var(--text2);}
+tbody td.mono{font-family:var(--font-mono);font-size:11px;color:var(--blue);}
+tbody td.bold{color:var(--text);font-weight:500;}
+
+/* ══════════════════════════════════════
+   BADGES
+══════════════════════════════════════ */
+.prio{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:10px;padding:2px 9px;border-radius:20px;
+  font-weight:600;font-family:var(--font-mono);letter-spacing:.2px;
+}
+.prio-critical{background:rgba(239,68,68,.13);color:#B91C1C;border:1px solid rgba(239,68,68,.25);}
+.prio-high{background:rgba(245,158,11,.16);color:#92400E;border:1px solid rgba(245,158,11,.28);}
+.prio-medium{background:rgba(37,99,235,.13);color:#1D4ED8;border:1px solid rgba(37,99,235,.25);}
+.prio-low{background:rgba(16,185,129,.13);color:#047857;border:1px solid rgba(16,185,129,.25);}
+
+.status-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:10px;padding:2px 9px;border-radius:20px;
+  font-weight:600;font-family:var(--font-mono);
+}
+.st-closed{background:var(--green-dim);color:var(--green);border:1px solid rgba(16,185,129,.2);}
+.st-resolved{background:rgba(16,185,129,.08);color:#34D399;border:1px solid rgba(52,211,153,.2);}
+.st-inprogress{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(59,130,246,.2);}
+.st-new{background:var(--purple-dim);color:var(--purple);border:1px solid rgba(139,92,246,.2);}
+.st-open{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,.2);}
+.st-pending{background:rgba(245,158,11,.1);color:#FCD34D;border:1px solid rgba(245,158,11,.25);}
+
+.action-badge{
+  font-size:10px;padding:2px 9px;border-radius:20px;
+  font-family:var(--font-mono);font-weight:500;
+}
+.act-auto{background:var(--green-dim);color:var(--green);}
+.act-sugg{background:var(--amber-dim);color:var(--amber);}
+.act-human{background:var(--red-dim);color:var(--red);}
+.act-pred{background:var(--purple-dim);color:var(--purple);}
+
+/* ══════════════════════════════════════
+   CREATE TICKET (INLINE)
+══════════════════════════════════════ */
+.form-card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  overflow:hidden;
+  max-width:680px;
+  box-shadow:0 10px 24px rgba(15,23,42,0.05);
+}
+
+.form-card-header{
+  padding:.85rem 1.2rem;
+  border-bottom:1px solid var(--border);
+  background:var(--panel2);
+  display:flex;align-items:center;gap:10px;
+}
+
+.form-card-body{padding:1.2rem;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group.full{grid-column:span 2;}
+
+label{
+  font-size:10px;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.8px;
+  font-family:var(--font-mono);font-weight:500;
+}
+
+input,select,textarea{
+  background:var(--bg3);
+  border:1px solid var(--border2);
+  border-radius:8px;padding:.55rem .85rem;
+  font-size:12.5px;color:var(--text);
+  font-family:var(--font-body);outline:none;
+  transition:border-color .15s,box-shadow .15s;width:100%;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--blue);
+  box-shadow:0 0 0 3px rgba(59,130,246,0.12);
+}
+input::placeholder,textarea::placeholder{color:var(--text3);}
+textarea{resize:vertical;min-height:72px;}
+select option{background:var(--bg3);}
+
+.form-footer{
+  display:flex;gap:8px;justify-content:flex-end;
+  margin-top:1rem;padding-top:.9rem;
+  border-top:1px solid var(--border);
+}
+
+/* ══════════════════════════════════════
+   AI RESULT CARD
+══════════════════════════════════════ */
+.ai-result{
+  display:none;
+  background:var(--panel2);
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  padding:1.1rem;
+  margin-top:1rem;
+  animation:aiReveal .35s ease;
+  position:relative;overflow:hidden;
+}
+
+.ai-result::before{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--blue),var(--purple),var(--cyan));
+}
+
+.ai-result.show{display:block;}
+
+@keyframes aiReveal{
+  from{opacity:0;transform:translateY(8px);filter:blur(2px);}
+  to{opacity:1;transform:translateY(0);filter:blur(0);}
+}
+
+.ai-result-head{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:.9rem;padding-bottom:.7rem;
+  border-bottom:1px solid var(--border);
+}
+
+.ai-avatar{
+  width:30px;height:30px;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;
+  box-shadow:0 0 16px rgba(59,130,246,0.3);
+}
+
+.ai-title{font-size:13px;font-weight:600;color:var(--text);}
+.ai-sub{font-size:10px;color:var(--text3);font-family:var(--font-mono);margin-top:1px;}
+
+.ai-grid{
+  display:grid;grid-template-columns:1fr 1fr 1fr 1fr;
+  gap:8px;margin-bottom:10px;
+}
+
+.ai-item{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;padding:.6rem .75rem;
+}
+.ai-item-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-family:var(--font-mono);margin-bottom:4px;}
+.ai-item-val{font-size:12px;font-weight:600;color:var(--text);}
+
+/* AI result bottom section */
+.ai-solution-card{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-left:3px solid var(--green);
+  border-radius:8px;padding:.75rem .9rem;
+  margin-bottom:8px;
+}
+.ai-sol-label{font-size:9px;color:var(--green);text-transform:uppercase;letter-spacing:1px;font-family:var(--font-mono);margin-bottom:5px;}
+.ai-sol-text{font-size:12px;color:var(--text2);line-height:1.65;}
+
+.ai-assign-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.ai-assign-item{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;padding:.65rem .9rem;
+}
+.ai-assign-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;font-family:var(--font-mono);margin-bottom:4px;}
+.ai-assign-val{font-size:12px;font-weight:600;color:var(--text);}
+
+/* ══════════════════════════════════════
+   DETAIL PANEL
+══════════════════════════════════════ */
+.detail-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.6);
+  backdrop-filter:blur(4px);
+  z-index:150;justify-content:flex-end;
+}
+.detail-overlay.open{display:flex;animation:fadeIn .2s ease;}
+
+.detail-panel{
+  width:460px;height:100vh;
+  background:var(--panel);
+  border-left:1px solid var(--border2);
+  overflow-y:auto;
+  animation:slideIn .25s ease;
+}
+@keyframes slideIn{from{transform:translateX(100%);}to{transform:translateX(0);}}
+
+.detail-head{
+  padding:1.1rem 1.2rem;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;background:var(--panel);z-index:10;
+}
+
+.detail-body{padding:1.1rem 1.2rem;}
+.detail-section{margin-bottom:1.3rem;}
+.detail-section-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-family:var(--font-mono);margin-bottom:.65rem;}
+
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:.45rem 0;border-bottom:1px solid var(--border);}
+.detail-row:last-child{border-bottom:none;}
+.detail-key{font-size:11px;color:var(--text3);}
+.detail-val{font-size:11px;color:var(--text);font-weight:500;text-align:right;max-width:240px;}
+
+/* ══════════════════════════════════════
+   MODAL
+══════════════════════════════════════ */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(6px);
+  z-index:200;align-items:center;justify-content:center;
+}
+.modal-overlay.open{display:flex;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+
+.modal{
+  background:var(--panel);
+  border:1px solid var(--border2);
+  border-radius:16px;width:520px;
+  max-height:90vh;overflow-y:auto;
+  padding:1.5rem;
+  animation:modalIn .25s ease;
+  position:relative;
+  box-shadow:0 24px 60px rgba(15,23,42,0.22);
+}
+
+.modal::before{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--blue),var(--purple));
+  border-radius:16px 16px 0 0;
+}
+
+@keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+
+.modal-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:1.2rem;padding-bottom:.8rem;
+  border-bottom:1px solid var(--border);
+}
+.modal-title{font-family:var(--font-head);font-size:15px;font-weight:700;}
+.modal-close{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:2px 6px;border-radius:4px;}
+.modal-close:hover{background:var(--bg3);color:var(--text);}
+
+/* ══════════════════════════════════════
+   KEDB CARDS
+══════════════════════════════════════ */
+.kedb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;}
+
+.kedb-card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:1rem 1.1rem;
+  transition:border-color .15s,transform .15s;
+  position:relative;overflow:hidden;
+  box-shadow:0 10px 24px rgba(15,23,42,0.05);
+}
+.kedb-card:hover{border-color:var(--border2);transform:translateY(-2px);}
+.kedb-card::after{
+  content:'';position:absolute;
+  left:0;top:0;bottom:0;width:3px;
+  background:var(--blue);
+  opacity:.5;
+}
+.kedb-card:hover::after{opacity:1;}
+
+.kedb-card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+.kedb-topic{font-size:13px;font-weight:600;color:var(--text);}
+.kedb-meta{font-size:11px;color:var(--text3);line-height:1.5;margin-bottom:8px;}
+.kedb-solution{
+  font-size:11px;color:var(--text2);line-height:1.6;
+  padding:.5rem .7rem;
+  background:var(--bg3);border-radius:6px;
+  border-left:2px solid var(--green);
+}
+
+/* ══════════════════════════════════════
+   ANALYTICS
+══════════════════════════════════════ */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem;}
+
+.chart-card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:1.1rem;
+  box-shadow:0 10px 24px rgba(15,23,42,0.05);
+}
+.chart-title{font-family:var(--font-head);font-size:13px;font-weight:700;margin-bottom:.9rem;}
+
+.bar-chart{display:flex;flex-direction:column;gap:10px;}
+.bar-row{display:flex;align-items:center;gap:10px;}
+.bar-label{font-size:11px;color:var(--text2);width:90px;flex-shrink:0;}
+.bar-track{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+.bar-fill{height:5px;border-radius:3px;transition:width 1.2s cubic-bezier(.23,1,.32,1);}
+.bar-val{font-size:11px;color:var(--text3);font-family:var(--font-mono);width:30px;text-align:right;}
+
+.donut-row{display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;}
+.donut-item{display:flex;flex-direction:column;align-items:center;gap:5px;}
+.donut-circle{
+  width:56px;height:56px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-head);font-size:16px;font-weight:800;
+  border:2px solid transparent;
+}
+.donut-label{font-size:10px;color:var(--text3);text-align:center;font-family:var(--font-mono);}
+
+/* ══════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
+.toast{
+  position:fixed;bottom:6rem;right:1.5rem;
+  background:var(--panel2);
+  border:1px solid var(--border2);
+  border-radius:12px;
+  padding:.8rem 1.1rem;
+  display:flex;align-items:center;gap:10px;
+  font-size:12px;z-index:300;
+  transform:translateY(80px);opacity:0;
+  transition:all .35s cubic-bezier(.34,1.56,.64,1);
+  min-width:260px;max-width:360px;
+  box-shadow:0 16px 40px rgba(15,23,42,.16);
+}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast-icon{font-size:16px;flex-shrink:0;}
+.toast-body{flex:1;}
+.toast-title{font-weight:600;color:var(--text);margin-bottom:1px;}
+.toast-sub{font-size:10px;color:var(--text3);font-family:var(--font-mono);}
+
+/* ══════════════════════════════════════
+   SPINNER / EMPTY
+══════════════════════════════════════ */
+.spinner{
+  width:14px;height:14px;
+  border:2px solid rgba(255,255,255,0.15);
+  border-top-color:var(--blue);
+  border-radius:50%;
+  animation:spin .65s linear infinite;
+  display:none;
+}
+.spinner.show{display:block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.empty-state{padding:3rem;text-align:center;color:var(--text3);}
+.empty-icon{font-size:36px;margin-bottom:.8rem;opacity:.3;}
+.empty-text{font-size:13px;}
+
+/* ══════════════════════════════════════
+   LIVE METRIC TICKER (NEW)
+══════════════════════════════════════ */
+.ticker-bar{
+  background:#DBEAFE;
+  border-bottom:1px solid rgba(37,99,235,0.16);
+  padding:.4rem 1.6rem;
+  display:flex;align-items:center;gap:2rem;
+  font-size:10px;font-family:var(--font-mono);
+  overflow:hidden;
+}
+.ticker-item{display:flex;align-items:center;gap:5px;color:var(--text3);white-space:nowrap;}
+.ticker-val{font-weight:600;}
+.ticker-val.t-blue{color:var(--blue);}
+.ticker-val.t-green{color:var(--green);}
+.ticker-val.t-amber{color:var(--amber);}
+.ticker-val.t-red{color:var(--red);}
+.ticker-sep{color:var(--text3);opacity:.3;}
+
+/* ══════════════════════════════════════
+   PRIORITY PIPELINE (NEW)
+══════════════════════════════════════ */
+.pipeline{
+  display:flex;gap:3px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:1rem 1.2rem;
+  margin-bottom:1.5rem;
+  align-items:center;
+  box-shadow:0 10px 24px rgba(15,23,42,0.05);
+}
+.pipe-stage{flex:1;text-align:center;}
+.pipe-stage-num{
+  font-family:var(--font-head);font-size:24px;font-weight:700;
+  letter-spacing:-1px;line-height:1;margin-bottom:3px;
+}
+.pipe-stage-label{font-size:10px;color:var(--text3);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.8px;}
+.pipe-arrow{color:var(--text3);font-size:16px;flex-shrink:0;padding:0 4px;}
+
+/* SECTION DIVIDER */
+.sdiv{
+  height:1px;background:var(--border);
+  margin:1.5rem 0;
+}
+
+/* VOICE CHATBOT */
+.voice-bot{
+  position:fixed;
+  right:1.5rem;
+  bottom:1.4rem;
+  z-index:260;
+}
+.voice-bot-btn{
+  width:58px;height:58px;
+  border-radius:50%;
+  border:1px solid rgba(59,130,246,.45);
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;
+  cursor:pointer;
+  box-shadow:0 16px 36px rgba(15,23,42,.22),0 0 28px rgba(59,130,246,.28);
+  transition:transform .18s, box-shadow .18s;
+}
+.voice-bot-btn:hover{transform:translateY(-2px);box-shadow:0 20px 44px rgba(15,23,42,.26),0 0 34px rgba(59,130,246,.36);}
+.voice-panel{
+  position:absolute;
+  right:0;
+  bottom:72px;
+  width:320px;
+  background:var(--panel);
+  border:1px solid var(--border2);
+  border-radius:12px;
+  box-shadow:0 22px 60px rgba(15,23,42,.18);
+  overflow:hidden;
+  opacity:0;
+  transform:translateY(12px) scale(.96);
+  pointer-events:none;
+  transition:all .22s ease;
+}
+.voice-panel.open{opacity:1;transform:translateY(0) scale(1);pointer-events:auto;}
+.voice-head{
+  padding:.85rem 1rem;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.voice-title{font-family:var(--font-head);font-size:14px;font-weight:700;}
+.voice-close{
+  background:transparent;border:none;color:var(--text3);
+  cursor:pointer;font-size:16px;
+}
+.voice-body{padding:1rem;display:flex;flex-direction:column;gap:10px;}
+.voice-message{
+  background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:.75rem .85rem;
+  font-size:12px;
+  color:var(--text2);
+  line-height:1.55;
+  min-height:58px;
+}
+.voice-meta{
+  font-size:10px;
+  color:var(--text3);
+  font-family:var(--font-mono);
+  word-break:break-word;
+}
+.voice-actions{display:flex;gap:8px;}
+.voice-mic{
+  flex:1;
+  justify-content:center;
+}
+.voice-mic.recording{
+  background:var(--red-dim);
+  color:var(--red);
+  border-color:rgba(239,68,68,.35);
+}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .stats-grid{grid-template-columns:1fr 1fr;}
+  .chart-grid{grid-template-columns:1fr;}
+  .logic-grid{grid-template-columns:1fr;}
+  .ai-grid{grid-template-columns:1fr 1fr;}
+  .ai-assign-row{grid-template-columns:1fr;}
+  .voice-panel{width:min(320px,calc(100vw - 2rem));}
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<!-- ════════════════════════════════
+     SIDEBAR
+════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="logo-area">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <div class="logo-wordmark">Resolve<span>Now</span> AI</div>
+        <div class="logo-sub">ITSM Platform</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="nav-section">
+    <div class="nav-label">Main</div>
+    <div class="nav-item active" onclick="showPage('dashboard')">
+      <span class="ni">▦</span> Dashboard
+    </div>
+    <div class="nav-item" onclick="showPage('tickets')">
+      <span class="ni">🎫</span> All Tickets
+      <span class="nbadge nb-blue" id="nav-total">0</span>
+    </div>
+    <div class="nav-item" onclick="showPage('create')">
+      <span class="ni">＋</span> New Ticket
+    </div>
+  </nav>
+
+  <nav class="nav-section">
+    <div class="nav-label">AI Engine</div>
+    <div class="nav-item" onclick="showPage('kedb')">
+      <span class="ni">🧠</span> KEDB
+      <span class="nbadge nb-green" id="nav-kedb">0</span>
+    </div>
+    <div class="nav-item" onclick="showPage('analytics')">
+      <span class="ni">📊</span> Analytics
+    </div>
+  </nav>
+
+  <nav class="nav-section">
+    <div class="nav-label">Queue</div>
+    <div class="nav-item" onclick="filterTickets('High')">
+      <span class="ni">🔴</span> High Priority
+      <span class="nbadge nb-red" id="nav-high">0</span>
+    </div>
+    <div class="nav-item" onclick="filterTickets('Medium')">
+      <span class="ni">🟡</span> Medium Priority
+      <span class="nbadge nb-amber" id="nav-med">0</span>
+    </div>
+    <div class="nav-item" onclick="filterTickets('Low')">
+      <span class="ni">🟢</span> Low Priority
+      <span class="nbadge nb-green" id="nav-low">0</span>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="api-status">
+      <div class="pulse-dot"></div>
+      <span>API Connected — port 8000</span>
+    </div>
+  </div>
+</aside>
+
+<!-- ════════════════════════════════
+     MAIN
+════════════════════════════════ -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="page-title" id="topbar-title">Dashboard</div>
+      <div class="page-sub" id="topbar-sub">AI-powered incident management</div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-ghost" onclick="downloadReport()">⬇ Report Download</button>
+      <button class="btn btn-ghost" onclick="refreshAll()">↺ Refresh</button>
+      <button class="btn btn-primary" onclick="openModal()">＋ New Ticket</button>
+    </div>
+  </div>
+
+  <!-- LIVE TICKER -->
+  <div class="ticker-bar" id="ticker-bar">
+    <div class="ticker-item">TOTAL <span class="ticker-val t-blue" id="tk-total">0</span></div>
+    <div class="ticker-sep">|</div>
+    <div class="ticker-item">AUTO RESOLVED <span class="ticker-val t-green" id="tk-auto">0</span></div>
+    <div class="ticker-sep">|</div>
+    <div class="ticker-item">NEEDS HUMAN <span class="ticker-val t-amber" id="tk-human">0</span></div>
+    <div class="ticker-sep">|</div>
+    <div class="ticker-item">AUTOMATION <span class="ticker-val t-green" id="tk-rate">0%</span></div>
+    <div class="ticker-sep">|</div>
+    <div class="ticker-item">HIGH PRIORITY <span class="ticker-val t-red" id="tk-high">0</span></div>
+    <div class="ticker-sep">|</div>
+    <div class="ticker-item">KEDB ENTRIES <span class="ticker-val t-blue" id="tk-kedb">0</span></div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══ DASHBOARD PAGE ══ -->
+    <div class="page active" id="page-dashboard">
+
+      <!-- STAT CARDS -->
+      <div class="stats-grid">
+        <div class="stat-card sc-blue">
+          <div class="glow-orb"></div>
+          <div class="stat-label">Total Tickets</div>
+          <div class="stat-val" id="stat-total">0</div>
+          <div class="stat-meta">All time</div>
+        </div>
+        <div class="stat-card sc-green">
+          <div class="glow-orb"></div>
+          <div class="stat-label">Auto Resolved</div>
+          <div class="stat-val" id="stat-auto">0</div>
+          <div class="stat-meta">By AI automatically</div>
+        </div>
+        <div class="stat-card sc-amber">
+          <div class="glow-orb"></div>
+          <div class="stat-label">Needs Human</div>
+          <div class="stat-val" id="stat-human">0</div>
+          <div class="stat-meta">High priority</div>
+        </div>
+        <div class="stat-card sc-red">
+          <div class="glow-orb"></div>
+          <div class="stat-label">Automation Rate</div>
+          <div class="stat-val" id="stat-rate">0%</div>
+          <div class="stat-meta">AI resolution rate</div>
+        </div>
+      </div>
+  
+      <!-- TICKET PIPELINE -->
+      <div class="pipeline">
+        <div class="pipe-stage">
+          <div class="pipe-stage-num" style="color:var(--purple)" id="p-new">0</div>
+          <div class="pipe-stage-label">New</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-stage">
+          <div class="pipe-stage-num" style="color:var(--blue)" id="p-inprog">0</div>
+          <div class="pipe-stage-label">In Progress</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-stage">
+          <div class="pipe-stage-num" style="color:var(--amber)" id="p-pending">0</div>
+          <div class="pipe-stage-label">Pending Customer</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-stage">
+          <div class="pipe-stage-num" style="color:var(--green)" id="p-resolved">0</div>
+          <div class="pipe-stage-label">Resolved</div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-stage">
+          <div class="pipe-stage-num" style="color:var(--text3)" id="p-closed">0</div>
+          <div class="pipe-stage-label">Closed</div>
+        </div>
+      </div>
+      <!-- SLA STATUS PANEL -->
+<div id="sla-panel" style="margin-bottom:1.5rem;">
+  <div class="section-head">
+    <div>
+      <div class="section-title">⏱ SLA Status</div>
+      <div class="section-sub">Live breach detection — auto-refreshes every 60s</div>
+    </div>
+    <div class="sla-actions">
+      <span id="sla-breach-count" style="background:var(--red-dim);color:var(--red);
+            border:1px solid rgba(239,68,68,0.2);border-radius:20px;
+            font-size:11px;padding:3px 12px;font-family:var(--font-mono);">
+        0 Breached
+      </span>
+      <button class="sla-toggle" id="sla-toggle-btn" onclick="toggleSlaDetails()">
+        <span id="sla-toggle-text">Show incident status</span>
+        <span class="sla-caret">▼</span>
+      </button>
+    </div>
+  </div>
+  <div id="sla-breached-list" class="sla-list"></div>
+</div>
+      <!-- AI DECISION LOGIC -->
+      <div class="section-head">
+        <div>
+          <div class="section-title">⚡ AI Decision Logic</div>
+          <div class="section-sub">How ResolveNow AI handles each ticket automatically</div>
+        </div>
+      </div>
+
+      <div class="logic-grid" style="margin-bottom:1.5rem;">
+        <div class="logic-card lc-red">
+          <div class="logic-header">
+            <div class="logic-dot"></div>
+            <div class="logic-title">High / Critical Priority</div>
+          </div>
+          <div class="logic-row">
+            <span class="logic-key">Known issue</span>
+            <span class="logic-val">Solution suggestion sent to assignee. Human must evaluate &amp; resolve.</span>
+          </div>
+          <div class="logic-row">
+            <span class="logic-key">Unknown issue</span>
+            <span class="logic-val">Escalated to human agent immediately. No auto action taken.</span>
+          </div>
+        </div>
+        <div class="logic-card lc-green">
+          <div class="logic-header">
+            <div class="logic-dot"></div>
+            <div class="logic-title">Low / Medium Priority</div>
+          </div>
+          <div class="logic-row">
+            <span class="logic-key">Known issue</span>
+            <span class="logic-val">Solution emailed to user. Auto-closes if user confirms resolved.</span>
+          </div>
+          <div class="logic-row">
+            <span class="logic-key">Still unresolved</span>
+            <span class="logic-val">Escalated — email sent to agent automatically.</span>
+          </div>
+          <div class="logic-row">
+            <span class="logic-key">Unknown issue</span>
+            <span class="logic-val">AI predicts type, assigns to best agent group.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECENT TICKETS -->
+      <div class="section-head">
+        <div>
+          <div class="section-title">Recent Tickets</div>
+          <div class="section-sub">Latest 10 tickets processed by AI</div>
+        </div>
+        <button class="btn btn-ghost" onclick="showPage('tickets')">View all →</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Ticket ID</th>
+              <th>Topic</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>AI Action</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="recent-tickets-body">
+            <tr><td colspan="6"><div class="empty-state"><div class="empty-icon">🎫</div><div class="empty-text">No tickets yet. Create your first ticket.</div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ ALL TICKETS PAGE ══ -->
+    <div class="page" id="page-tickets">
+      <div class="table-wrap">
+        <div class="table-toolbar">
+          <input class="search-box" placeholder="🔍  Search tickets..." oninput="filterTable(this.value)" />
+          <select class="filter-select" id="status-filter" onchange="applyFilters()">
+            <option value="">All Status</option>
+            <option>New</option>
+            <option>In Progress</option>
+            <option>Pending Customer</option>
+            <option>Resolved</option>
+            <option>Closed</option>
+          </select>
+          <select class="filter-select" id="priority-filter" onchange="applyFilters()">
+            <option value="">All Priority</option>
+            <option>Critical</option>
+            <option>High</option>
+            <option>Medium</option>
+            <option>Low</option>
+          </select>
+          <div class="spinner" id="tickets-spinner"></div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Ticket ID</th>
+              <th>Topic</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>AI Action</th>
+              <th>Agent Group</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="all-tickets-body">
+            <tr><td colspan="8"><div class="empty-state"><div class="empty-icon">🎫</div><div class="empty-text">No tickets yet.</div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ CREATE TICKET PAGE ══ -->
+    <div class="page" id="page-create">
+      <div class="form-card">
+        <div class="form-card-header">
+          <div style="width:28px;height:28px;background:var(--blue-dim);border:1px solid rgba(59,130,246,0.3);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;">＋</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;">Create New Ticket</div>
+            <div style="font-size:10px;color:var(--text3);font-family:var(--font-mono);margin-top:1px;">AI will automatically analyse and route</div>
+          </div>
+        </div>
+        <div class="form-card-body">
+          <div class="form-grid" id="inline-form">
+            <div class="form-group">
+              <label>Topic / Issue Type *</label>
+              <select id="if-topic">
+                <option value="">Select topic...</option>
+                <option>Network Issue</option>
+                <option>Hardware Failure</option>
+                <option>Software Bug</option>
+                <option>Access Request</option>
+                <option>General Inquiry</option>
+                <option>Performance Issue</option>
+                <option>Security Incident</option>
+                <option>Data Issue</option>
+                <option>Configuration</option>
+                <option>Connectivity</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Priority * (You decide)</label>
+              <select id="if-priority" style="border-color:rgba(59,130,246,0.4);">
+                <option value="">Select priority...</option>
+                <option value="Critical">🔴 Critical</option>
+                <option value="High">🟠 High</option>
+                <option value="Medium">🟡 Medium</option>
+                <option value="Low">🟢 Low</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Source</label>
+              <select id="if-source">
+                <option>Email</option><option>Phone</option><option>Chat</option><option>Portal</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Product Group</label>
+              <select id="if-product">
+                <option>Cloud</option><option>Network</option><option>Hardware</option><option>Software</option><option>Security</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Agent Group</label>
+              <select id="if-agent">
+                <option>General Support</option>
+                <option>Network Ops</option>
+                <option>Security</option>
+                <option>Customer Service</option>
+                <option>Development</option>
+                <option>IT Support</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Country</label>
+              <select id="if-country">
+                <option>Qatar</option><option>UAE</option><option>Saudi Arabia</option>
+                <option>Kuwait</option><option>Bahrain</option><option>Oman</option><option>India</option>
+              </select>
+            </div>
+            <div class="form-group full">
+              <label>Description</label>
+              <textarea id="if-desc" placeholder="Describe the issue in detail..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Created By</label>
+              <input id="if-createdby" placeholder="Your name..." value="User" />
+            </div>
+            <div class="form-group">
+              <label>User Email * (solution sent here)</label>
+              <input id="if-email" type="email" placeholder="user@company.com" />
+            </div>
+          </div>
+          <div class="form-footer">
+            <button class="btn btn-ghost" onclick="clearInlineForm()">Clear</button>
+            <button class="btn btn-primary" onclick="createTicketInline()" id="inline-submit-btn">
+              <span id="inline-btn-text">⚡ Submit &amp; Analyse</span>
+              <div class="spinner" id="inline-spinner"></div>
+            </button>
+          </div>
+          <div class="ai-result" id="inline-ai-result"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ KEDB PAGE ══ -->
+    <div class="page" id="page-kedb">
+      <div class="section-head">
+        <div>
+          <div class="section-title">🧠 Known Error Database</div>
+          <div class="section-sub">AI solution library — built from your ticket dataset</div>
+        </div>
+      </div>
+      <div class="kedb-grid" id="kedb-grid">
+        <div class="empty-state"><div class="empty-icon">🧠</div><div class="empty-text">Loading KEDB...</div></div>
+      </div>
+    </div>
+
+    <!-- ══ ANALYTICS PAGE ══ -->
+    <div class="page" id="page-analytics">
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-title">Tickets by Priority</div>
+          <div class="bar-chart" id="priority-chart"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Tickets by Status</div>
+          <div class="bar-chart" id="status-chart"></div>
+        </div>
+      </div>
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-title">AI Automation Breakdown</div>
+          <div class="donut-row" id="automation-chart"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">System Summary</div>
+          <div id="summary-stats" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- ══ NEW TICKET MODAL ══ -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">⚡ New Ticket</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Topic *</label>
+        <select id="m-topic">
+          <option value="">Select topic...</option>
+          <option>Network Issue</option><option>Hardware Failure</option><option>Software Bug</option>
+          <option>Access Request</option><option>General Inquiry</option><option>Performance Issue</option>
+          <option>Security Incident</option><option>Data Issue</option><option>Configuration</option><option>Connectivity</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Priority * (You decide)</label>
+        <select id="m-priority" style="border-color:rgba(59,130,246,0.4);">
+          <option value="">Select...</option>
+          <option value="Critical">🔴 Critical</option>
+          <option value="High">🟠 High</option>
+          <option value="Medium">🟡 Medium</option>
+          <option value="Low">🟢 Low</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Source</label>
+        <select id="m-source">
+          <option>Email</option><option>Phone</option><option>Chat</option><option>Portal</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Product Group</label>
+        <select id="m-product">
+          <option>Cloud</option><option>Network</option><option>Hardware</option><option>Software</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>Description</label>
+        <textarea id="m-desc" placeholder="Describe the issue..."></textarea>
+      </div>
+      <div class="form-group full">
+        <label>User Email (solution will be sent here)</label>
+        <input id="m-email" type="email" placeholder="user@company.com" />
+      </div>
+    </div>
+    <div class="form-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="createTicketModal()" id="modal-submit-btn">
+        <span id="modal-btn-text">⚡ Submit</span>
+        <div class="spinner" id="modal-spinner"></div>
+      </button>
+    </div>
+    <div class="ai-result" id="modal-ai-result"></div>
+  </div>
+</div>
+
+<!-- ══ TICKET DETAIL PANEL ══ -->
+<div class="detail-overlay" id="detail-overlay" onclick="closeDetailOutside(event)">
+  <div class="detail-panel" id="detail-panel">
+    <div class="detail-head">
+      <div>
+        <div class="modal-title" id="detail-ticket-id">TCKT-XXXXX</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">Ticket Details</div>
+      </div>
+      <button class="modal-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="detail-body" id="detail-body"></div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div class="toast" id="toast">
+  <div class="toast-icon" id="toast-icon">✅</div>
+  <div class="toast-body">
+    <div class="toast-title" id="toast-title">Success</div>
+    <div class="toast-sub" id="toast-sub">Action completed</div>
+  </div>
+</div>
+
+<!-- â•â• VOICE CHATBOT â•â• -->
+<div class="voice-bot">
+  <div class="voice-panel" id="voice-panel">
+    <div class="voice-head">
+      <div class="voice-title">🤖 Ticket Bot</div>
+      <button class="voice-close" onclick="toggleVoiceBot(false)">✕</button>
+    </div>
+    <div class="voice-body">
+      <div class="voice-message" id="voice-message">Tap the mic and say your incident number.</div>
+      <div class="voice-meta" id="voice-meta">Sarvam speech-to-text ready</div>
+      <div class="voice-actions">
+        <button class="btn btn-ghost voice-mic" id="voice-mic-btn" onclick="toggleVoiceRecording()">🎙 Start Voice</button>
+      </div>
+    </div>
+  </div>
+  <button class="voice-bot-btn" onclick="toggleVoiceBot()" title="Ticket status voice bot">🤖</button>
+</div>
+
+<script>
+const API = 'http://localhost:8000';
+let allTickets = [];
+let kedbData = {};
+let voiceRecorder = null;
+let voiceChunks = [];
+let voiceRecording = false;
+let slaDetailsOpen = false;
+
+// ── NAVIGATION ──────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+
+  const titles = {
+    dashboard: ['Dashboard',            'AI-powered incident management'],
+    tickets:   ['All Tickets',          'Manage and track all incidents'],
+    create:    ['New Ticket',           'Submit and let AI analyse automatically'],
+    kedb:      ['Known Error Database', 'AI solution library'],
+    analytics: ['Analytics',            'Performance insights and metrics']
+  };
+  document.getElementById('topbar-title').textContent = titles[name][0];
+  document.getElementById('topbar-sub').textContent   = titles[name][1];
+
+  if (name === 'kedb')      loadKedb();
+  if (name === 'analytics') loadAnalytics();
+  if (name === 'tickets')   renderAllTickets(allTickets);
+}
+
+// ── MODAL ────────────────────────────────────────────────
+function openModal()  { document.getElementById('modal-overlay').classList.add('open'); document.getElementById('modal-ai-result').classList.remove('show'); }
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+function closeModalOutside(e) { if (e.target.id==='modal-overlay') closeModal(); }
+
+// ── DETAIL PANEL ─────────────────────────────────────────
+function toggleVoiceBot(forceOpen) {
+  const panel = document.getElementById('voice-panel');
+  const open = typeof forceOpen === 'boolean' ? forceOpen : !panel.classList.contains('open');
+  panel.classList.toggle('open', open);
+}
+
+function setVoiceState(message, meta) {
+  document.getElementById('voice-message').textContent = message;
+  document.getElementById('voice-meta').textContent = meta || '';
+}
+
+function speakTicketStatus(text) {
+  if (!('speechSynthesis' in window) || !text) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.95;
+  utterance.pitch = 1;
+  window.speechSynthesis.speak(utterance);
+}
+
+async function toggleVoiceRecording() {
+  const btn = document.getElementById('voice-mic-btn');
+
+  if (voiceRecording && voiceRecorder) {
+    voiceRecorder.stop();
+    return;
+  }
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+    setVoiceState('Voice recording is not supported in this browser.', 'Use Chrome or Edge with microphone access');
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    voiceChunks = [];
+    voiceRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+
+    voiceRecorder.ondataavailable = event => {
+      if (event.data && event.data.size > 0) voiceChunks.push(event.data);
+    };
+
+    voiceRecorder.onstop = async () => {
+      stream.getTracks().forEach(track => track.stop());
+      voiceRecording = false;
+      btn.classList.remove('recording');
+      btn.textContent = '🎙 Start Voice';
+
+      const audioBlob = new Blob(voiceChunks, { type: 'audio/webm' });
+      await submitVoiceTicketQuery(audioBlob);
+    };
+
+    voiceRecorder.start();
+    voiceRecording = true;
+    btn.classList.add('recording');
+    btn.textContent = '■ Stop Recording';
+    setVoiceState('Listening...', 'Say the incident number clearly');
+  } catch(e) {
+    setVoiceState('Microphone access was not allowed.', 'Check browser permissions');
+  }
+}
+
+async function submitVoiceTicketQuery(audioBlob) {
+  const form = new FormData();
+  form.append('audio', audioBlob, 'ticket-voice.webm');
+  form.append('language_code', 'unknown');
+
+  setVoiceState('Checking ticket status...', 'Sending audio to Sarvam STT');
+
+  try {
+    const res = await fetch(`${API}/voice/ticket-status`, { method:'POST', body:form });
+    const data = await res.json();
+
+    if (!res.ok) {
+      const detail = data.detail || 'Voice status lookup failed';
+      setVoiceState(detail, 'Backend or Sarvam API error');
+      speakTicketStatus(detail);
+      return;
+    }
+
+    if (!data.success) {
+      const msg = data.message || 'I could not find that ticket.';
+      setVoiceState(msg, `Heard: ${data.transcript || 'No transcript'}`);
+      speakTicketStatus(msg);
+      return;
+    }
+
+    const display = `${data.ticket_id}: ${data.status} • ${data.priority} • ${data.topic}`;
+    setVoiceState(display, `Heard: ${data.transcript || data.ticket_id}`);
+    speakTicketStatus(data.spoken_response || display);
+  } catch(e) {
+    const msg = 'Could not reach the voice status service.';
+    setVoiceState(msg, 'Make sure backend is running on port 8000');
+    speakTicketStatus(msg);
+  }
+}
+
+function openDetail(ticket) {
+  document.getElementById('detail-ticket-id').textContent = ticket.ticket_id;
+  const ai = ticket.ai_result || {};
+
+  document.getElementById('detail-body').innerHTML = `
+    <div class="detail-section">
+      <div class="detail-section-title">Ticket Info</div>
+      <div class="detail-row"><span class="detail-key">Topic</span><span class="detail-val">${ticket.topic||'—'}</span></div>
+      <div class="detail-row"><span class="detail-key">Priority</span><span class="detail-val">${prioBadge(ticket.predicted_priority)}</span></div>
+      <div class="detail-row"><span class="detail-key">Status</span><span class="detail-val">${statusBadge(ticket.status)}</span></div>
+      <div class="detail-row"><span class="detail-key">Source</span><span class="detail-val">${ticket.source||'—'}</span></div>
+      <div class="detail-row"><span class="detail-key">Product</span><span class="detail-val">${ticket.product_group||'—'}</span></div>
+      <div class="detail-row"><span class="detail-key">Agent Group</span><span class="detail-val">${ticket.agent_group||ticket.assigned_group||'—'}</span></div>
+      <div class="detail-row"><span class="detail-key">Assigned To</span><span class="detail-val">${ticket.assigned_to||ai.assigned_to||'Pending'}</span></div>
+      <div class="detail-row"><span class="detail-key">Country</span><span class="detail-val">${ticket.country||'—'}</span></div>
+      <div class="detail-row"><span class="detail-key">Created</span><span class="detail-val">${formatTime(ticket.created_time)}</span></div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">AI Analysis</div>
+      <div class="detail-row"><span class="detail-key">Action</span><span class="detail-val">${actionBadge(ai.action_taken)}</span></div>
+      <div class="detail-row"><span class="detail-key">Known Issue</span><span class="detail-val">${ai.is_known_issue?'<span style="color:var(--green)">✅ Yes</span>':'<span style="color:var(--text3)">❌ No</span>'}</span></div>
+      <div class="detail-row"><span class="detail-key">KEDB Match</span><span class="detail-val">${ai.kedb_match||'—'}</span></div>
+      <div class="detail-row"><span class="detail-key">Auto Resolved</span><span class="detail-val">${ai.auto_resolved?'<span style="color:var(--green)">Yes</span>':'No'}</span></div>
+      <div class="detail-row"><span class="detail-key">Auto Closed</span><span class="detail-val">${ai.auto_closed?'<span style="color:var(--green)">Yes</span>':'No'}</span></div>
+      <div class="detail-row"><span class="detail-key">Requires Human</span><span class="detail-val">${ai.requires_human?'<span style="color:var(--red)">Yes</span>':'No'}</span></div>
+    </div>
+
+    ${ai.solution_suggestion?`
+    <div class="detail-section">
+      <div class="detail-section-title">Solution Suggestion</div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:8px;padding:.75rem .9rem;font-size:12px;color:var(--text2);line-height:1.65;">${ai.solution_suggestion}</div>
+    </div>`:''}
+
+    ${ai.message?`
+    <div class="detail-section">
+      <div class="detail-section-title">AI Message</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.6;padding:.6rem .8rem;background:var(--bg3);border-radius:8px;">${ai.message}</div>
+    </div>`:''}
+
+    ${ai.requires_human && ticket.status!=='Resolved' && ticket.status!=='Closed'?`
+    <div class="detail-section">
+      <div class="detail-section-title">Human Action Required</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="resolveTicket('${ticket.ticket_id}')">✅ Mark Resolved</button>
+        <button class="btn btn-ghost" onclick="closeTicket('${ticket.ticket_id}')">🔒 Close Ticket</button>
+      </div>
+    </div>`:''}
+  `;
+
+  document.getElementById('detail-overlay').classList.add('open');
+}
+
+function closeDetail() { document.getElementById('detail-overlay').classList.remove('open'); }
+function closeDetailOutside(e) { if (e.target.id==='detail-overlay') closeDetail(); }
+
+// ── AI RESULT RENDERER ───────────────────────────────────
+function showAiResult(containerId, data) {
+  const ai  = data.ai_analysis;
+  const el  = document.getElementById(containerId);
+  const isAuto = ai.auto_closed || ai.auto_resolved;
+  const isHigh = ai.requires_human;
+
+  el.innerHTML = `
+    <div class="ai-result-head">
+      <div class="ai-avatar">🤖</div>
+      <div>
+        <div class="ai-title">AI Analysis Complete</div>
+        <div class="ai-sub">Ticket ${data.ticket_id} processed</div>
+      </div>
+      <div style="margin-left:auto;">${actionBadge(ai.action_taken)}</div>
+    </div>
+
+    <div class="ai-grid">
+      <div class="ai-item">
+        <div class="ai-item-label">Priority</div>
+        <div class="ai-item-val">${ai.priority||'—'}</div>
+      </div>
+      <div class="ai-item">
+        <div class="ai-item-label">Known Issue</div>
+        <div class="ai-item-val" style="color:${ai.is_known_issue?'var(--green)':'var(--text3)'}">${ai.is_known_issue?'✅ Yes':'❌ No'}</div>
+      </div>
+      <div class="ai-item">
+        <div class="ai-item-label">Auto Resolved</div>
+        <div class="ai-item-val" style="color:${isAuto?'var(--green)':'var(--text3)'}">${isAuto?'✅ Yes':'No'}</div>
+      </div>
+      <div class="ai-item">
+        <div class="ai-item-label">Needs Human</div>
+        <div class="ai-item-val" style="color:${isHigh?'var(--red)':'var(--text3)'}">${isHigh?'⚠️ Yes':'No'}</div>
+      </div>
+    </div>
+
+    ${ai.solution_suggestion ? `
+    <div class="ai-solution-card">
+      <div class="ai-sol-label">💡 Solution</div>
+      <div class="ai-sol-text" id="sol-${containerId}">${ai.solution_suggestion}</div>
+    </div>` : ''}
+
+    <div class="ai-assign-row">
+      <div class="ai-assign-item">
+        <div class="ai-assign-label">👤 Assigned To</div>
+        <div class="ai-assign-val" id="at-${containerId}">—</div>
+      </div>
+      <div class="ai-assign-item">
+        <div class="ai-assign-label">👥 Assigned Group</div>
+        <div class="ai-assign-val" id="ag-${containerId}">—</div>
+      </div>
+    </div>
+  `;
+
+  // Populate assign values safely after innerHTML
+  const assignedTo = data.ticket.assigned_to || ai.assigned_to || '';
+  const atEl = document.getElementById(`at-${containerId}`);
+  const agEl = document.getElementById(`ag-${containerId}`);
+
+  if (atEl) {
+    if (!assignedTo || assignedTo === 'Pending Customer Confirmation') {
+      atEl.textContent = 'Pending Customer';
+      atEl.style.color = 'var(--amber)';
+    } else {
+      atEl.textContent = assignedTo;
+    }
+  }
+
+  if (agEl) {
+    agEl.textContent = data.ticket.assigned_group
+      || data.ticket.agent_group
+      || ai.assigned_to_group
+      || '—';
+  }
+
+  el.classList.add('show');
+}
+
+// ── API CALLS ────────────────────────────────────────────
+async function createTicketModal() {
+  const topic    = document.getElementById('m-topic').value;
+  const priority = document.getElementById('m-priority').value;
+  if (!topic || !priority) { showToast('⚠️','Missing Fields','Please select a topic and priority','warn'); return; }
+
+  const btn = document.getElementById('modal-submit-btn');
+  document.getElementById('modal-btn-text').textContent = 'Analysing...';
+  document.getElementById('modal-spinner').classList.add('show');
+  btn.disabled = true;
+
+  try {
+    const res  = await fetch(`${API}/tickets/create`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      topic, user_priority:priority,
+      source:       document.getElementById('m-source').value,
+      product_group:document.getElementById('m-product').value,
+      description:  document.getElementById('m-desc').value,
+      user_email:   document.getElementById('m-email').value
+    })});
+    const data = await res.json();
+    if (data.success) {
+      allTickets.unshift(data.ticket);
+      showAiResult('modal-ai-result', data);
+      updateNavBadges();
+      loadDashboard();
+      showToast('⚡','Ticket Created',`${data.ticket_id} — ${data.ai_analysis.action_taken}`,'success');
+    }
+  } catch(e) {
+    showToast('❌','API Error','Make sure backend is running on port 8000','error');
+  } finally {
+    document.getElementById('modal-btn-text').textContent = '⚡ Submit';
+    document.getElementById('modal-spinner').classList.remove('show');
+    btn.disabled = false;
+  }
+}
+
+async function createTicketInline() {
+  const topic    = document.getElementById('if-topic').value;
+  const priority = document.getElementById('if-priority').value;
+  if (!topic || !priority) { showToast('⚠️','Missing Fields','Please select a topic and priority','warn'); return; }
+
+  const btn = document.getElementById('inline-submit-btn');
+  document.getElementById('inline-btn-text').textContent = 'Analysing...';
+  document.getElementById('inline-spinner').classList.add('show');
+  btn.disabled = true;
+
+  try {
+    const res  = await fetch(`${API}/tickets/create`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      topic, user_priority:priority,
+      source:        document.getElementById('if-source').value,
+      product_group: document.getElementById('if-product').value,
+      agent_group:   document.getElementById('if-agent').value,
+      country:       document.getElementById('if-country').value,
+      description:   document.getElementById('if-desc').value,
+      created_by:    document.getElementById('if-createdby').value,
+      user_email:    document.getElementById('if-email').value
+    })});
+    const data = await res.json();
+    if (data.success) {
+      allTickets.unshift(data.ticket);
+      showAiResult('inline-ai-result', data);
+      updateNavBadges();
+      loadDashboard();
+      showToast('⚡','Ticket Created',`${data.ticket_id} — ${data.ai_analysis.action_taken}`,'success');
+    }
+  } catch(e) {
+    showToast('❌','API Error','Make sure backend is running on port 8000','error');
+  } finally {
+    document.getElementById('inline-btn-text').textContent = '⚡ Submit & Analyse';
+    document.getElementById('inline-spinner').classList.remove('show');
+    btn.disabled = false;
+  }
+}
+
+function clearInlineForm() {
+  ['if-topic','if-priority','if-source','if-product','if-agent','if-country','if-desc'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el.tagName==='SELECT') el.selectedIndex=0; else el.value='';
+  });
+  document.getElementById('inline-ai-result').classList.remove('show');
+}
+
+async function loadAllTickets() {
+  try {
+    const res  = await fetch(`${API}/tickets`);
+    const data = await res.json();
+    allTickets = data.tickets||[];
+    updateNavBadges();
+    loadDashboard();
+  } catch(e) { console.log('Backend not connected yet'); }
+}
+
+async function loadKedb() {
+  try {
+    const res  = await fetch(`${API}/kedb`);
+    const data = await res.json();
+    kedbData   = data.kedb||[];
+    document.getElementById('nav-kedb').textContent = data.total_known_issues||0;
+    document.getElementById('tk-kedb').textContent  = data.total_known_issues||0;
+
+    const grid = document.getElementById('kedb-grid');
+    if (!kedbData.length) { grid.innerHTML='<div class="empty-state"><div class="empty-icon">🧠</div><div class="empty-text">Train your model first</div></div>'; return; }
+    grid.innerHTML = kedbData.map(k=>`
+      <div class="kedb-card">
+        <div class="kedb-card-head">
+          <div class="kedb-topic">${k.topic}</div>
+          <span class="nbadge nb-green">${k.occurrences} tickets</span>
+        </div>
+        <div class="kedb-meta">
+          ⏱ Avg resolution: ${k.avg_resolution_minutes} min &nbsp;·&nbsp;
+          ${k.auto_resolvable?'<span style="color:var(--green)">⚡ Auto-resolvable</span>':'<span style="color:var(--text3)">👤 Agent needed</span>'}
+        </div>
+        <div class="kedb-solution">${k.solution_suggestion}</div>
+      </div>`).join('');
+  } catch(e) {
+    document.getElementById('kedb-grid').innerHTML='<div class="empty-state"><div class="empty-icon">❌</div><div class="empty-text">Backend not connected</div></div>';
+  }
+}
+
+async function loadAnalytics() {
+  try {
+    const res  = await fetch(`${API}/analytics/summary`);
+    const data = await res.json();
+
+    const pc    = document.getElementById('priority-chart');
+    const pdata = data.by_priority||{};
+    const ptot  = Object.values(pdata).reduce((a,b)=>a+b,0)||1;
+    const pcols = {Critical:'var(--red)',High:'var(--amber)',Medium:'var(--blue)',Low:'var(--green)'};
+    pc.innerHTML = Object.entries(pdata).map(([k,v])=>`
+      <div class="bar-row">
+        <div class="bar-label">${k}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(v/ptot*100).toFixed(0)}%;background:${pcols[k]||'var(--purple)'};"></div></div>
+        <div class="bar-val">${v}</div>
+      </div>`).join('');
+
+    const sc    = document.getElementById('status-chart');
+    const sdata = data.by_status||{};
+    const stot  = Object.values(sdata).reduce((a,b)=>a+b,0)||1;
+    const scols = {Closed:'var(--green)',Resolved:'var(--green)','In Progress':'var(--blue)',New:'var(--purple)',Open:'var(--amber)','Pending Customer':'var(--amber)'};
+    sc.innerHTML = Object.entries(sdata).map(([k,v])=>`
+      <div class="bar-row">
+        <div class="bar-label">${k}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(v/stot*100).toFixed(0)}%;background:${scols[k]||'var(--text3)'};"></div></div>
+        <div class="bar-val">${v}</div>
+      </div>`).join('');
+
+    const total = data.total_tickets||0;
+    const autoR = data.auto_resolved_closed||0;
+    const human = data.requires_human||0;
+    const other = total-autoR-human;
+    document.getElementById('automation-chart').innerHTML=`
+      <div class="donut-item">
+        <div class="donut-circle" style="background:var(--green-dim);color:var(--green);border-color:rgba(16,185,129,0.3);">${autoR}</div>
+        <div class="donut-label">Auto Resolved</div>
+      </div>
+      <div class="donut-item">
+        <div class="donut-circle" style="background:var(--red-dim);color:var(--red);border-color:rgba(239,68,68,0.3);">${human}</div>
+        <div class="donut-label">Needs Human</div>
+      </div>
+      <div class="donut-item">
+        <div class="donut-circle" style="background:var(--blue-dim);color:var(--blue);border-color:rgba(59,130,246,0.3);">${other<0?0:other}</div>
+        <div class="donut-label">In Queue</div>
+      </div>`;
+
+    document.getElementById('summary-stats').innerHTML=[
+      ['Total Tickets',    total,                      'var(--blue)'],
+      ['Automation Rate',  (data.automation_rate||0)+'%','var(--green)'],
+      ['KEDB Size',        data.kedb_size||0,          'var(--purple)'],
+      ['Needs Human',      human,                      'var(--red)']
+    ].map(([l,v,c])=>`
+      <div style="display:flex;justify-content:space-between;padding:.5rem .8rem;background:var(--bg3);border-radius:8px;border:1px solid var(--border);">
+        <span style="font-size:12px;color:var(--text2);">${l}</span>
+        <span style="font-size:13px;font-weight:700;color:${c};font-family:var(--font-head);">${v}</span>
+      </div>`).join('');
+  } catch(e) { console.log('Analytics load failed'); }
+}
+
+async function resolveTicket(id) {
+  try {
+    await fetch(`${API}/tickets/${id}/resolve`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({ticket_id:id,status:'Resolved',resolution_notes:'Resolved by human agent',agent_name:'Agent'})});
+    showToast('✅','Ticket Resolved',`${id} marked as resolved`,'success');
+    closeDetail(); await loadAllTickets();
+  } catch(e) { showToast('❌','Error','Could not resolve ticket','error'); }
+}
+
+async function closeTicket(id) {
+  try {
+    await fetch(`${API}/tickets/${id}/close`,{method:'DELETE'});
+    showToast('🔒','Ticket Closed',`${id} has been closed`,'success');
+    closeDetail(); await loadAllTickets();
+  } catch(e) { showToast('❌','Error','Could not close ticket','error'); }
+}
+
+// ── RENDER HELPERS ────────────────────────────────────────
+function prioBadge(p) {
+  const map={Critical:'prio-critical',High:'prio-high',Medium:'prio-medium',Low:'prio-low'};
+  return `<span class="prio ${map[p]||'prio-low'}">${p||'—'}</span>`;
+}
+
+function statusBadge(s) {
+  const map={Closed:'st-closed',Resolved:'st-resolved','In Progress':'st-inprogress',New:'st-new',Open:'st-open','Pending Customer':'st-pending'};
+  return `<span class="status-badge ${map[s]||'st-new'}">${s||'—'}</span>`;
+}
+
+function actionBadge(a) {
+  if (!a) return '—';
+  const map={
+    AUTO_RESOLVED_AND_CLOSED:    ['act-auto',  '⚡ Auto Resolved'],
+    SUGGESTION_AND_ASSIGNED:     ['act-sugg',  '💡 Suggested'],
+    SUGGESTION_ONLY:             ['act-sugg',  '💡 Suggest Only'],
+    ESCALATED_TO_HUMAN:          ['act-human', '👤 Escalated'],
+    PREDICTED_AND_ASSIGNED:      ['act-pred',  '🔮 Predicted'],
+    EMAIL_SENT_PENDING_CUSTOMER: ['act-sugg',  '📧 Email Sent'],
+    ESCALATED_TO_HUMAN_FROM_EMAIL:['act-human','👤 Escalated']
+  };
+  const [cls,label]=map[a]||['act-pred',a];
+  return `<span class="action-badge ${cls}">${label}</span>`;
+}
+
+function formatTime(ts) {
+  if (!ts) return '—';
+  try { return new Date(ts).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}); }
+  catch(e) { return ts.substring(0,16); }
+}
+
+function renderAllTickets(tickets) {
+  const tbody = document.getElementById('all-tickets-body');
+  if (!tickets.length) {
+    tbody.innerHTML='<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">🎫</div><div class="empty-text">No tickets yet.</div></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML=tickets.map(t=>`
+    <tr onclick="openDetail(${JSON.stringify(t).replace(/"/g,'&quot;')})">
+      <td class="mono">${t.ticket_id}</td>
+      <td class="bold">${t.topic||'—'}</td>
+      <td>${prioBadge(t.predicted_priority)}</td>
+      <td>${statusBadge(t.status)}</td>
+      <td>${actionBadge(t.ai_result?.action_taken)}</td>
+      <td style="color:var(--text2)">${t.agent_group||'—'}</td>
+      <td style="color:var(--text3);font-size:11px;">${formatTime(t.created_time)}</td>
+      <td>
+        <button class="btn btn-ghost" style="padding:.3rem .7rem;font-size:10px;" onclick="event.stopPropagation();openDetail(${JSON.stringify(t).replace(/"/g,'&quot;')})">View</button>
+      </td>
+    </tr>`).join('');
+}
+
+function filterTable(query) {
+  const q=query.toLowerCase();
+  renderAllTickets(allTickets.filter(t=>
+    (t.ticket_id||'').toLowerCase().includes(q)||
+    (t.topic||'').toLowerCase().includes(q)||
+    (t.status||'').toLowerCase().includes(q)
+  ));
+}
+
+function filterTickets(priority) {
+  showPage('tickets');
+  renderAllTickets(allTickets.filter(t=>t.predicted_priority===priority));
+}
+
+function applyFilters() {
+  const status   = document.getElementById('status-filter').value;
+  const priority = document.getElementById('priority-filter').value;
+  let f = allTickets;
+  if (status)   f=f.filter(t=>t.status===status);
+  if (priority) f=f.filter(t=>t.predicted_priority===priority);
+  renderAllTickets(f);
+}
+
+function loadDashboard() {
+  const total  = allTickets.length;
+  const autoR  = allTickets.filter(t=>t.ai_result?.auto_closed||t.ai_result?.auto_resolved).length;
+  const human  = allTickets.filter(t=>t.ai_result?.requires_human).length;
+  const rate   = total ? Math.round(autoR/total*100) : 0;
+
+  document.getElementById('stat-total').textContent  = total;
+  document.getElementById('stat-auto').textContent   = autoR;
+  document.getElementById('stat-human').textContent  = human;
+  document.getElementById('stat-rate').textContent   = rate+'%';
+
+  // Ticker bar
+  document.getElementById('tk-total').textContent  = total;
+  document.getElementById('tk-auto').textContent   = autoR;
+  document.getElementById('tk-human').textContent  = human;
+  document.getElementById('tk-rate').textContent   = rate+'%';
+  document.getElementById('tk-high').textContent   = allTickets.filter(t=>t.predicted_priority==='High'||t.predicted_priority==='Critical').length;
+
+  // Pipeline counts
+  const byStatus = s => allTickets.filter(t=>t.status===s).length;
+  document.getElementById('p-new').textContent      = byStatus('New');
+  document.getElementById('p-inprog').textContent   = byStatus('In Progress');
+  document.getElementById('p-pending').textContent  = byStatus('Pending Customer');
+  document.getElementById('p-resolved').textContent = byStatus('Resolved');
+  document.getElementById('p-closed').textContent   = byStatus('Closed');
+
+  // Recent tickets
+  const recent = allTickets.slice(0,10);
+  const tbody  = document.getElementById('recent-tickets-body');
+  if (!recent.length) {
+    tbody.innerHTML='<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">🎫</div><div class="empty-text">No tickets yet. Create your first ticket.</div></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML=recent.map(t=>`
+    <tr onclick="openDetail(${JSON.stringify(t).replace(/"/g,'&quot;')})">
+      <td class="mono">${t.ticket_id}</td>
+      <td class="bold">${t.topic||'—'}</td>
+      <td>${prioBadge(t.predicted_priority)}</td>
+      <td>${statusBadge(t.status)}</td>
+      <td>${actionBadge(t.ai_result?.action_taken)}</td>
+      <td style="color:var(--text3);font-size:11px;">${formatTime(t.created_time)}</td>
+    </tr>`).join('');
+}
+
+function updateNavBadges() {
+  document.getElementById('nav-total').textContent = allTickets.length;
+  document.getElementById('nav-high').textContent  = allTickets.filter(t=>t.predicted_priority==='High'||t.predicted_priority==='Critical').length;
+  document.getElementById('nav-med').textContent   = allTickets.filter(t=>t.predicted_priority==='Medium').length;
+  document.getElementById('nav-low').textContent   = allTickets.filter(t=>t.predicted_priority==='Low').length;
+}
+
+async function downloadReport() {
+  if (!allTickets.length) {
+    await loadAllTickets();
+  }
+
+  if (!allTickets.length) {
+    showToast('⚠️','No Data','No tickets available to download','warn');
+    return;
+  }
+
+  const headers = [
+    'Ticket ID',
+    'Topic',
+    'Description',
+    'Priority',
+    'Status',
+    'Assigned To',
+    'Assigned Group',
+    'Created By',
+    'User Email',
+    'Created Time',
+    'AI Action',
+    'Requires Human',
+    'Known Issue'
+  ];
+
+  const rows = allTickets.map(t => [
+    t.ticket_id,
+    t.topic,
+    t.description,
+    t.predicted_priority || t.priority,
+    t.status,
+    t.assigned_to,
+    t.assigned_group || t.agent_group,
+    t.created_by,
+    t.user_email,
+    t.created_time,
+    t.ai_result?.action_taken,
+    t.ai_result?.requires_human ? 'Yes' : 'No',
+    t.ai_result?.is_known_issue ? 'Yes' : 'No'
+  ]);
+
+  const csv = [headers, ...rows]
+    .map(row => row.map(value => `"${String(value ?? '').replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  const date = new Date().toISOString().slice(0, 10);
+
+  link.href = url;
+  link.download = `resolvenow-ticket-report-${date}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+
+  showToast('⬇','Report Downloaded',`${allTickets.length} tickets exported`,'success');
+}
+
+function refreshAll() { loadAllTickets(); showToast('↺','Refreshed','Data updated from API','success'); }
+
+// ── TOAST ────────────────────────────────────────────────
+function showToast(icon,title,sub,type) {
+  const t=document.getElementById('toast');
+  document.getElementById('toast-icon').textContent  = icon;
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-sub').textContent   = sub;
+  t.style.borderColor=type==='success'?'rgba(16,185,129,.35)':type==='error'?'rgba(239,68,68,.35)':'rgba(245,158,11,.35)';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+// SLA breach checker — call every 60 seconds
+function toggleSlaDetails(forceOpen) {
+  slaDetailsOpen = typeof forceOpen === 'boolean' ? forceOpen : !slaDetailsOpen;
+  const list = document.getElementById('sla-breached-list');
+  const btn = document.getElementById('sla-toggle-btn');
+  const label = document.getElementById('sla-toggle-text');
+
+  if (list) list.classList.toggle('open', slaDetailsOpen);
+  if (btn) btn.classList.toggle('open', slaDetailsOpen);
+  if (label) label.textContent = slaDetailsOpen ? 'Hide incident status' : 'Show incident status';
+}
+
+async function loadSlaBreaches() {
+  try {
+    const res  = await fetch(`${API}/sla/breached`);
+    const data = await res.json();
+    const list    = document.getElementById('sla-breached-list');
+    const countEl = document.getElementById('sla-breach-count');
+
+    const totalAlerts = data.total_breached + data.total_warnings;
+
+    if (totalAlerts === 0) {
+      countEl.textContent       = '✅ All within SLA';
+      countEl.style.background  = 'var(--green-dim)';
+      countEl.style.color       = 'var(--green)';
+      countEl.style.borderColor = 'rgba(16,185,129,0.2)';
+      list.innerHTML = `
+        <div style="padding:.8rem 1rem;background:var(--panel);
+             border:1px solid var(--border);border-left:3px solid var(--green);
+             border-radius:10px;font-size:12px;color:var(--green);">
+          ✅ All tickets are within SLA — no warnings or breaches detected.
+        </div>`;
+      toggleSlaDetails(slaDetailsOpen);
+      return;
+    }
+
+    // Badge shows both counts
+    countEl.innerHTML = data.total_breached > 0
+      ? `🚨 ${data.total_breached} Breached &nbsp;·&nbsp; ⚠️ ${data.total_warnings} Warning`
+      : `⚠️ ${data.total_warnings} Warning`;
+    countEl.style.background  = data.total_breached > 0 ? 'var(--red-dim)'   : 'var(--amber-dim)';
+    countEl.style.color       = data.total_breached > 0 ? 'var(--red)'       : 'var(--amber)';
+    countEl.style.borderColor = data.total_breached > 0 ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.2)';
+
+    let html = '';
+
+    // ── WARNING ROWS (75%) — shown first, amber colour ──
+    (data.warning_tickets || []).forEach(t => {
+      html += `
+        <div style="display:flex;align-items:center;justify-content:space-between;
+             padding:.7rem 1rem;background:var(--panel);
+             border:1px solid rgba(245,158,11,0.25);
+             border-left:3px solid var(--amber);
+             border-radius:10px;margin-bottom:6px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:12px;">⚠️</span>
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--blue);">${t.ticket_id}</span>
+            <span style="font-size:12px;font-weight:600;color:var(--text);">${t.topic}</span>
+            ${prioBadge(t.priority)}
+            <span style="font-size:10px;background:var(--amber-dim);color:var(--amber);
+                         border:1px solid rgba(245,158,11,0.2);border-radius:20px;
+                         padding:2px 10px;font-family:var(--font-mono);">
+              ⚠ ${t.sla_type} SLA at ${t.percent_used}%
+            </span>
+          </div>
+          <div style="font-size:11px;color:var(--text3);font-family:var(--font-mono);">
+            Due: ${t.deadline ? t.deadline.substring(0,16).replace('T',' ') : '—'}
+          </div>
+        </div>`;
+    });
+
+    // ── BREACHED ROWS — shown after, red colour ──
+    (data.breached_tickets || []).forEach(t => {
+      html += `
+        <div style="display:flex;align-items:center;justify-content:space-between;
+             padding:.7rem 1rem;background:var(--panel);
+             border:1px solid rgba(239,68,68,0.25);
+             border-left:3px solid var(--red);
+             border-radius:10px;margin-bottom:6px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:12px;">🚨</span>
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--blue);">${t.ticket_id}</span>
+            <span style="font-size:12px;font-weight:600;color:var(--text);">${t.topic}</span>
+            ${prioBadge(t.priority)}
+            ${statusBadge(t.status)}
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            ${t.response_sla_status === 'Breached'
+              ? `<span style="font-size:10px;background:var(--red-dim);color:var(--red);
+                 border:1px solid rgba(239,68,68,0.2);border-radius:20px;padding:2px 10px;
+                 font-family:var(--font-mono);">🚨 Response Breached</span>` : ''}
+            ${t.restoration_sla_status === 'Breached'
+              ? `<span style="font-size:10px;background:var(--amber-dim);color:var(--amber);
+                 border:1px solid rgba(245,158,11,0.2);border-radius:20px;padding:2px 10px;
+                 font-family:var(--font-mono);">🚨 Restoration Breached</span>` : ''}
+            <span style="font-size:10px;color:var(--text3);font-family:var(--font-mono);">
+              Due: ${t.response_deadline ? t.response_deadline.substring(0,16).replace('T',' ') : '—'}
+            </span>
+          </div>
+        </div>`;
+    });
+
+    list.innerHTML = html;
+    toggleSlaDetails(slaDetailsOpen);
+  } catch(e) {
+    document.getElementById('sla-breached-list').innerHTML =
+      `<div style="padding:.8rem;font-size:12px;color:var(--text3);">
+         SLA check failed — backend not reachable.
+       </div>`;
+    toggleSlaDetails(slaDetailsOpen);
+  }
+}
+
+// ── INIT ─────────────────────────────────────────────────
+loadAllTickets();
+// Run on load and refresh every 60 seconds
+loadSlaBreaches();
+setInterval(loadSlaBreaches, 60000);
+</script>
+</body>
+</html>
