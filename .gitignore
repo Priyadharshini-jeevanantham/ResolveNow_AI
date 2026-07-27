@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.sqlite3
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment files
+.env
+.env.*
+
+# Jupyter / notebooks
+.ipynb_checkpoints/
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Model/data artifacts
+models/
+*.bin
+*.pt
+*.h5
+*.ckpt
+*.pkl
+*.joblib
+*.onnx
+*.safetensors
+
+# Large local data
+data/
+outputs/
